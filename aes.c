@@ -38,6 +38,7 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 #include <stdint.h>
 #include <string.h> // CBC mode, for memset
 #include "aes.h"
+#include <avr/pgmspace.h>
 
 /*****************************************************************************/
 /* Defines:                                                                  */
@@ -92,7 +93,7 @@ static const uint8_t* Key;
 // The lookup-tables are marked const so they can be placed in read-only storage instead of RAM
 // The numbers below can be computed dynamically trading ROM for RAM - 
 // This can be useful in (embedded) bootloader applications, where ROM is often limited.
-static const uint8_t sbox[256] = {
+const PROGMEM uint8_t sbox[256] = {
   //0     1    2      3     4    5     6     7      8    9     A      B    C     D     E     F
   0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
   0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
@@ -111,7 +112,7 @@ static const uint8_t sbox[256] = {
   0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
   0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16 };
 
-static const uint8_t rsbox[256] = {
+const PROGMEM uint8_t rsbox[256] = {
   0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb,
   0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb,
   0x54, 0x7b, 0x94, 0x32, 0xa6, 0xc2, 0x23, 0x3d, 0xee, 0x4c, 0x95, 0x0b, 0x42, 0xfa, 0xc3, 0x4e,
@@ -131,7 +132,7 @@ static const uint8_t rsbox[256] = {
 
 // The round constant word array, Rcon[i], contains the values given by 
 // x to th e power (i-1) being powers of x (x is denoted as {02}) in the field GF(2^8)
-static const uint8_t Rcon[11] = {
+const PROGMEM uint8_t Rcon[11] = {
   0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36 };
 
 /*
@@ -170,12 +171,12 @@ static const uint8_t Rcon[256] = {
 /*****************************************************************************/
 static uint8_t getSBoxValue(uint8_t num)
 {
-  return sbox[num];
+  return pgm_read_byte_near(sbox + num);
 }
 
 static uint8_t getSBoxInvert(uint8_t num)
 {
-  return rsbox[num];
+  return pgm_read_byte_near(rsbox + num);
 }
 
 // This function produces Nb(Nr+1) round keys. The round keys are used in each round to decrypt the states. 
@@ -229,7 +230,8 @@ static void KeyExpansion(void)
         tempa[3] = getSBoxValue(tempa[3]);
       }
 
-      tempa[0] =  tempa[0] ^ Rcon[i/Nk];
+      tempa[0] =  tempa[0] ^ pgm_read_byte_near(Rcon + i/Nk);
+  
     }
 #if defined(AES256) && (AES256 == 1)
     if (i % Nk == 4)

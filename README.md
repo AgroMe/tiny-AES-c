@@ -1,3 +1,22 @@
+### Hacked version for Arduino of Tiny AES in C
+
+This is a simple hacked version of Tiny AES in C for Arduino.
+
+Everything else below is intact from the original source.
+
+To use this lib, clone to a working directory that is not your Arduino libraries one.
+
+Then create a new directory in your libraries dir and softlink aes.c to aes.cpp and aes.h to aes.h in the newly created dir.
+
+Then just:
+
+```C
+#include "aes.h"
+```
+
+And have fun!
+
+
 ### Tiny AES in C
 
 This is a small and portable implementation of the AES ECB and CBC encryption algorithms written in C.
